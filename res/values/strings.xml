@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="app_name">Wlan Helper</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">Wlan Helper</string>
+    <string name="result_received">Result text received from tag:</string>
+    <string name="button_write_tag">Write tag</string>
+    <string name="pre_shared_key">Pre-shared key</string>
+    <string name="ssid">SSID</string>
+
+</resources>
