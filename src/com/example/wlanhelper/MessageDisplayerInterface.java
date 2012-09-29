@@ -1,6 +1,6 @@
 package com.example.wlanhelper;
 
-public interface MessageDisplayer {
+public interface MessageDisplayerInterface {
     
     public void displayMessage(String message);
 }

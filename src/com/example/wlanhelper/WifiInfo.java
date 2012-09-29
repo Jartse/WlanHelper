@@ -6,7 +6,7 @@ public class WifiInfo {
 	
 	public WifiInfo( String ssid, String preSharedKey ) {
 	    if (ssid.isEmpty() || preSharedKey.isEmpty()) {
-	        throw new IllegalArgumentException("Unable to create WifiInfo, ssid: " + ssid + ", presharedKey: " + preSharedKey);
+	        throw new IllegalArgumentException("Invalid wifi info, either SSID or pre-shared key is empty (ssid: " + ssid + ", pre-shared key: " + preSharedKey + ").");
 	    }
 		this.mSsid = ssid;
 		this.mPreSharedKey = preSharedKey;

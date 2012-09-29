@@ -6,16 +6,13 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.os.Parcelable;
 
-import com.example.wlanhelper.WlanHelperExceptions.NoNdefMessagesExtraInTagException;
-import com.example.wlanhelper.WlanHelperExceptions.TagFormatNotSupportedException;
-
 
 public class TagReader {
 	
-	private MessageDisplayer messageDisplayer;
+	private MessageDisplayerInterface messageDisplayer;
 	public static final int NEWCONFPRIORITY = 40;
 	
-	public TagReader( MessageDisplayer messageDisplayer ) {
+	public TagReader( MessageDisplayerInterface messageDisplayer ) {
 		this.messageDisplayer = messageDisplayer;
 	}
 	
@@ -24,16 +21,13 @@ public class TagReader {
 	 * 
 	 * @param intent Intent that contains the NFC tag info.
 	 * @return An info object containing the wifi configuration details.
-	 * @throws NoNdefMessagesExtraInTagException
-	 * @throws TagFormatNotSupportedException
+	 * @throws ReadException
 	 */
-	public WifiInfo parseWifiInfoFromTag(Intent intent) 
-			throws NoNdefMessagesExtraInTagException,
-				   TagFormatNotSupportedException {
+	public WifiInfo parseWifiInfoFromTag(Intent intent) throws ReadException {
 		
 		Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
 		if( rawMsgs == null ) {
-			throw new NoNdefMessagesExtraInTagException("Intent did not include the parcelable for the NDEF messages.");
+			throw new ReadException("Intent did not include the parcelable for the NDEF messages.");
 		}
 		
         NdefMessage msg = (NdefMessage) rawMsgs[0];
@@ -44,7 +38,7 @@ public class TagReader {
         return doParse(wifiInfoStr);
 	}
 
-    public WifiInfo doParse(String wifiInfoStr) throws TagFormatNotSupportedException {
+    public WifiInfo doParse(String wifiInfoStr) throws ReadException {
         // validate the format of the data
         int indexOfSeparator = wifiInfoStr.indexOf( MainActivity.SEPARATOR );
         if ( indexOfSeparator != -1 ) {
@@ -58,7 +52,7 @@ public class TagReader {
         	return new WifiInfo(ssid, preSharedKey);
         	
         } else {
-        	throw new TagFormatNotSupportedException("The expected separator char not found in the tag data");
+        	throw new ReadException("The expected separator char not found in the tag data");
         }
     }	
 	

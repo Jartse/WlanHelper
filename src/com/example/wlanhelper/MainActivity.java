@@ -15,7 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class MainActivity extends Activity implements MessageDisplayer, WifiManagerProvider {
+public class MainActivity extends Activity implements MessageDisplayerInterface, WifiManagerProviderInterface {
 	private NfcAdapter mNfcAdapter;
 	private TextView mMessageField;
 	private WifiManager mWifiManager;
@@ -49,7 +49,7 @@ public class MainActivity extends Activity implements MessageDisplayer, WifiMana
         mMessageField = (TextView)findViewById(R.id.text_view);
         
         if ( !mWifiManager.isWifiEnabled() ) {
-        	mWifiConfigurator.displayWifiState();
+        	mWifiConfigurator.displayWifiState("onCreate()");
         	boolean setSuccess = mWifiManager.setWifiEnabled(true);
 			Log.d("JARI WLAN", "onCreate(), Wifi network was not enabled -> setting it on, setSuccess: " + setSuccess);
 		}
@@ -84,14 +84,16 @@ public class MainActivity extends Activity implements MessageDisplayer, WifiMana
     	if(intent.getType() != null 
     			&& intent.getType().equals(MimeType.WLAN_HELPER)
     			&& NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction()) ) {
-    		Log.d("JARI WLAN", "onResume(), Correct intent found -> calling readTag()");
+    		Log.d("JARI WLAN", "onResume(), Correct intent found -> setting up the Wifi network from tag");
     		try {
     			WifiInfo wifiInfo = mReader.parseWifiInfoFromTag( intent );
     			// Create a new WIFI configuration based on these pieces of info, and take it into use.
     			mWifiConfigurator.useWifiInfo( wifiInfo );
-    			
-			} catch ( Exception e ) {
-				displayMessage("Failed to read tag, exception message: " + e.getMessage());
+    		
+    		} catch ( ReadException e ) {
+                displayMessage("Failed to read a wifi configuration from tag: " + e.getMessage());
+            } catch ( Exception e ) {
+                displayMessage("Failed to set up a new wifi configuration from tag: " + e.getMessage());
 			}
     	}
     }
@@ -110,7 +112,7 @@ public class MainActivity extends Activity implements MessageDisplayer, WifiMana
 			try {
 				mWriter.writeTag(intent, getWritableSSIDInfo());
 			} catch (Exception e) {
-				displayMessage("Failed to write tag, exception message: " + e.getMessage());
+				displayMessage("Failed to write into tag: " + e.getMessage());
 			}
 		}
     }

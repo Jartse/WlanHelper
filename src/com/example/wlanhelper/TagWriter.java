@@ -13,17 +13,11 @@ import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
 import android.util.Log;
 
-import com.example.wlanhelper.WlanHelperExceptions.NoTagExtraException;
-import com.example.wlanhelper.WlanHelperExceptions.TagFormatNotSupportedException;
-import com.example.wlanhelper.WlanHelperExceptions.TagMemoryTooSmallException;
-import com.example.wlanhelper.WlanHelperExceptions.TagNotFormattableException;
-import com.example.wlanhelper.WlanHelperExceptions.TagNotWritableException;
-
 public class TagWriter {
 	
-	private MessageDisplayer messageDisplayer;
+	private MessageDisplayerInterface messageDisplayer;
 	
-	public TagWriter( MessageDisplayer messageDisplayer ) {
+	public TagWriter( MessageDisplayerInterface messageDisplayer ) {
 		this.messageDisplayer = messageDisplayer;
 	}
 	
@@ -31,17 +25,12 @@ public class TagWriter {
 	 * Format a tag and write our NDEF message
 	 */
 	public void writeTag(Intent intent, String ssidInfo)
-			throws IOException, FormatException,
-				   NoTagExtraException,
-				   TagNotWritableException,
-				   TagMemoryTooSmallException,
-				   TagNotFormattableException,
-				   TagFormatNotSupportedException {
+			throws IOException, FormatException, WriteException {
 		Log.d("JARI WLAN", "Entered writeTag()");
 		
 		Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 		if( tag == null ) {
-			throw new NoTagExtraException("Intent did not include the TAG parcelable extra.");
+			throw new WriteException("Intent did not include the TAG parcelable extra.");
 		}
 		
 		// record to launch Play Store if app is not installed
@@ -63,8 +52,8 @@ public class TagWriter {
 		}
     }
 
-    private void writeUnformattedTag(Tag tag, NdefMessage message) throws FormatException, TagNotFormattableException,
-            TagFormatNotSupportedException {
+    private void writeUnformattedTag(Tag tag, NdefMessage message) 
+            throws FormatException, WriteException {
         NdefFormatable format = NdefFormatable.get(tag);
         if (format != null) {
         	try {
@@ -73,25 +62,25 @@ public class TagWriter {
         		messageDisplayer.displayMessage("Tag written successfully!\nClose this app and scan tag.");
         		//Log.d("JARI WLAN", "Tag written (formatted) successfully.");
         	} catch (IOException e) {
-        		throw new TagNotFormattableException("Unable to format tag to NDEF");
+        		throw new WriteException("Unable to format tag to NDEF");
         	}
         } else {
-        	throw new TagFormatNotSupportedException("Tag doesn't appear to support NDEF format");
+        	throw new WriteException("Tag doesn't support NDEF format");
         }
     }
 
-    private void writeFormattedTag(NdefMessage message, Ndef ndef) throws IOException, TagNotWritableException,
-            TagMemoryTooSmallException, FormatException {
+    private void writeFormattedTag(NdefMessage message, Ndef ndef) 
+            throws IOException, FormatException, WriteException {
         ndef.connect();
-
+        
         if (!ndef.isWritable()) {
-        	throw new TagNotWritableException("Read-only tag");
+        	throw new WriteException("Read-only tag");
         }
         
         // work out how much space we need for the data
         int size = message.toByteArray().length;
         if (ndef.getMaxSize() < size) {
-        	throw new TagMemoryTooSmallException("Content to be written is too big for the used tag");
+        	throw new WriteException("Content to be written is too big for the used tag");
         }
 
         ndef.writeNdefMessage(message);
