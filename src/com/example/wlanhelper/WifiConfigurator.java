@@ -85,6 +85,7 @@ public class WifiConfigurator {
         if ( netId != -1 ) {
             Log.d("JARI WLAN", "A new WIFI network added successfully, netId: " + netId);
             
+            newConf.networkId = netId;
             enableWifiConfiguration(newConf);
             
         } else {
