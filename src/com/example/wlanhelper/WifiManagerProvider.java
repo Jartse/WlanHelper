@@ -2,8 +2,8 @@ package com.example.wlanhelper;
 
 import android.net.wifi.WifiManager;
 
-public interface WifiManagerProviderInterface {
+public interface WifiManagerProvider {
 
     public WifiManager getWifiManager();
-    
+
 }

@@ -9,23 +9,23 @@ import android.util.Log;
 
 public class WifiConfigurator {
 
-    private WifiManagerProviderInterface mWifiManagerProvider;
-    
-    public WifiConfigurator(WifiManagerProviderInterface wifiManagerProvider) {
+    private WifiManagerProvider mWifiManagerProvider;
+
+    public WifiConfigurator(WifiManagerProvider wifiManagerProvider) {
         mWifiManagerProvider = wifiManagerProvider;
     }
-    
+
     /**
      * Sets a new WLAN account and takes it into use.
      * 
-     * @param wifiInfo An info object containing the wifi configuration details.
+     * @param wifiInfo  An info object containing the wifi configuration details.
      * @throws WifiSetupException
      */
-    public void useWifiInfo( WifiInfo wifiInfo ) throws WifiSetupException {
+    public void useWifiInfo(WifiInfo wifiInfo) throws WifiSetupException {
 
         ensureEnabledState();
 
-        WifiConfiguration alreadyExistingWifiConfiguration = getExistingWifiConfiguration( wifiInfo.getSsid() );
+        WifiConfiguration alreadyExistingWifiConfiguration = getExistingWifiConfiguration(wifiInfo.getSsid());
 
         if (alreadyExistingWifiConfiguration == null) {
             Log.d("JARI WLAN", "The given WIFI network WAS NOT found in the list of already existing WIFI networks.");
@@ -41,35 +41,36 @@ public class WifiConfigurator {
         }
 
     }
-    
+
     private void ensureEnabledState() {
         displayWifiState("ensureEnabledState() start");
-        
-        // If the WIFI feature is still being enabled, let's wait for that to finish in 1s steps, max 4s.
+
+        // If the WIFI feature is still being enabled, let's wait for that to
+        // finish in 1s steps, max 4s.
         final int retryCount = 4;
         for (int retry = 0; retry < retryCount; retry++) {
-            if ( WifiManager.WIFI_STATE_ENABLING == mWifiManagerProvider.getWifiManager().getWifiState() ) {
+            if (WifiManager.WIFI_STATE_ENABLING == mWifiManagerProvider.getWifiManager().getWifiState()) {
                 Log.d("JARI WLAN", "Still enabling wifi -> WAITING FOR 1 SEC");
                 SystemClock.sleep(1000);
             } else {
                 break;
             }
         }
-        
+
         displayWifiState("ensureEnabledState() end");
     }
-    
+
     public void displayWifiState(String callingPlace) {
         String stateStr;
         int state = mWifiManagerProvider.getWifiManager().getWifiState();
-        
-        if ( state == WifiManager.WIFI_STATE_DISABLING ) {
+
+        if (state == WifiManager.WIFI_STATE_DISABLING) {
             stateStr = new String("DISABLING");
-        } else if ( state == WifiManager.WIFI_STATE_DISABLED ) {
+        } else if (state == WifiManager.WIFI_STATE_DISABLED) {
             stateStr = new String("DISABLED");
-        } else if ( state == WifiManager.WIFI_STATE_ENABLING ) {
+        } else if (state == WifiManager.WIFI_STATE_ENABLING) {
             stateStr = new String("ENABLING");
-        } else if ( state == WifiManager.WIFI_STATE_ENABLED ) {
+        } else if (state == WifiManager.WIFI_STATE_ENABLED) {
             stateStr = new String("ENABLED");
         } else {
             stateStr = new String("UNKNOWN");
@@ -79,54 +80,52 @@ public class WifiConfigurator {
 
     private void setupNewWifiConfiguration(String ssid, String preSharedKey) throws WifiSetupException {
         WifiConfiguration newConf = createWPAWifiConfiguration(ssid, preSharedKey);
-        
+
         // Connect to and enable the newly-created WIFI configuration.
         int netId = mWifiManagerProvider.getWifiManager().addNetwork(newConf);
-        if ( netId != -1 ) {
+        if (netId != -1) {
             Log.d("JARI WLAN", "A new WIFI network added successfully, netId: " + netId);
-            
+
             newConf.networkId = netId;
             enableWifiConfiguration(newConf);
-            
+
         } else {
             throw new WifiSetupException("Addition of a new WIFI network failed");
         }
     }
-    
+
     private void enableWifiConfiguration(WifiConfiguration wifiConfiguration) throws WifiSetupException {
         Log.d("JARI WLAN", "enabling network id " + wifiConfiguration.networkId);
         boolean enableSuccess = mWifiManagerProvider.getWifiManager().enableNetwork(wifiConfiguration.networkId, true);
-        if (!enableSuccess) { 
+        if (!enableSuccess) {
             throw new WifiSetupException("Enabling the already existing network failed");
         }
     }
 
-
     private WifiConfiguration getExistingWifiConfiguration(String ssid) {
         WifiConfiguration existingWifiConfiguration = null;
-        
+
         List<WifiConfiguration> wifiList = mWifiManagerProvider.getWifiManager().getConfiguredNetworks();
-        Log.d("JARI WLAN", "wifiList count: " + wifiList.size());       
-        
+        Log.d("JARI WLAN", "wifiList count: " + wifiList.size());
+
         // Check if we already have the network configured.
-        for ( int i = 0; i < wifiList.size(); ++i ) {
+        for (int i = 0; i < wifiList.size(); ++i) {
             WifiConfiguration wifiConfiguration = (WifiConfiguration) wifiList.get(i);
-            
-            String ssidInList =
-                new String( wifiConfiguration.SSID.substring(wifiConfiguration.SSID.indexOf("\"")+1,
-                                                             wifiConfiguration.SSID.lastIndexOf("\"")) );
-            if(ssid.equals(ssidInList)) {
+
+            String ssidInList = new String(wifiConfiguration.SSID.substring(wifiConfiguration.SSID.indexOf("\"") + 1,
+                    wifiConfiguration.SSID.lastIndexOf("\"")));
+            if (ssid.equals(ssidInList)) {
                 Log.i("JARI WLAN", "***** Our network already found from the list *****");
                 existingWifiConfiguration = wifiConfiguration;
             }
-            
+
             logWifiConfigurationInfo(i, wifiConfiguration);
         }
         return existingWifiConfiguration;
     }
 
     private WifiConfiguration createWPAWifiConfiguration(String ssid, String preSharedKey) {
-        WifiConfiguration newConf = new WifiConfiguration();        
+        WifiConfiguration newConf = new WifiConfiguration();
         newConf.SSID = "\"" + ssid + "\"";
         newConf.preSharedKey = "\"" + preSharedKey + "\"";
         newConf.priority = TagReader.NEWCONFPRIORITY;
@@ -144,7 +143,7 @@ public class WifiConfigurator {
     }
 
     private void logWifiConfigurationInfo(int i, WifiConfiguration wifiConfiguration) {
-        Log.i("JARI WLAN", "WifiConfiguration # "+ (i+1) +" ************************** -->");
+        Log.i("JARI WLAN", "WifiConfiguration # " + (i + 1) + " ************************** -->");
         Log.i("JARI WLAN", "*");
         Log.i("JARI WLAN", "networkId: " + wifiConfiguration.networkId);
         Log.i("JARI WLAN", "SSID: " + wifiConfiguration.SSID);
@@ -153,7 +152,7 @@ public class WifiConfigurator {
         Log.i("JARI WLAN", "preSharedKey: " + wifiConfiguration.preSharedKey);
         Log.i("JARI WLAN", "status: " + wifiConfiguration.status);
         Log.i("JARI WLAN", "*");
-        Log.i("JARI WLAN", "WifiConfiguration # "+ (i+1) +" ************************** <--");
+        Log.i("JARI WLAN", "WifiConfiguration # " + (i + 1) + " ************************** <--");
     }
-    
+
 }
