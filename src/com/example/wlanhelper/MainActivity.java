@@ -23,8 +23,6 @@ public class MainActivity extends Activity implements MessageDisplayer, WifiMana
     private WifiConfigurator mWifiConfigurator;
     private boolean mInWriteMode;
 
-    public static final String SEPARATOR = ":";
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,7 +77,7 @@ public class MainActivity extends Activity implements MessageDisplayer, WifiMana
         Intent intent = getIntent();
         
         if (intent.getType() != null
-                && intent.getType().equals(MimeType.WLAN_HELPER)
+                && intent.getType().equals(Constants.WLAN_HELPER_MIMETYPE)
                 && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
             Log.d("JARI WLAN", "onResume(), Correct intent found -> setting up the Wifi network from tag");
             try {
@@ -107,7 +105,7 @@ public class MainActivity extends Activity implements MessageDisplayer, WifiMana
 
             // write to newly scanned tag
             try {
-                mWriter.writeTag(intent, getWritableSSIDInfo());
+                mWriter.writeTag(intent, getWritableWifiInfo());
             } catch (Exception e) {
                 displayMessage("Failed to write into tag: " + e.getMessage());
             }
@@ -121,10 +119,10 @@ public class MainActivity extends Activity implements MessageDisplayer, WifiMana
         }
     }
 
-    private String getWritableSSIDInfo() {
+    private WifiInfo getWritableWifiInfo() {
         String ssid = getTextFieldContent(R.id.ssid);
         String preSharedKey = getTextFieldContent(R.id.pre_shared_key);
-        return new String(ssid + MainActivity.SEPARATOR + preSharedKey);
+        return new WifiInfo(ssid, preSharedKey);
     }
 
     private String getTextFieldContent(int fieldId) {

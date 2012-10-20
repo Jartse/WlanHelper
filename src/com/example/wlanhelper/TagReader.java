@@ -37,7 +37,7 @@ public class TagReader {
 
     public WifiInfo doParse(String wifiInfoStr) throws ReadException {
         // validate the format of the data
-        int indexOfSeparator = wifiInfoStr.indexOf(MainActivity.SEPARATOR);
+        int indexOfSeparator = wifiInfoStr.indexOf(Constants.WIFIINFO_SEPARATOR);
         if (indexOfSeparator != -1) {
             String ssid = new String(wifiInfoStr.substring(0, indexOfSeparator));
             String preSharedKey = new String(wifiInfoStr.substring(indexOfSeparator + 1));

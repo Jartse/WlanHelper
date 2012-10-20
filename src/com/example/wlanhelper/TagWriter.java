@@ -24,7 +24,7 @@ public class TagWriter {
     /**
      * Format a tag and write our NDEF message
      */
-    public void writeTag(Intent intent, String ssidInfo)
+    public void writeTag(Intent intent, WifiInfo wifiInfo)
             throws IOException, FormatException, WriteException {
         Log.d("JARI WLAN", "Entered writeTag()");
 
@@ -37,8 +37,8 @@ public class TagWriter {
         NdefRecord appRecord = NdefRecord.createApplicationRecord("com.example.wlanhelper");
 
         // record that contains our custom wifi setup data, using custom MIME_TYPE
-        byte[] payload = ssidInfo.getBytes();
-        byte[] mimeBytes = MimeType.WLAN_HELPER.getBytes(Charset.forName("US-ASCII"));
+        byte[] payload = wifiInfoAsString(wifiInfo).getBytes();
+        byte[] mimeBytes = Constants.WLAN_HELPER_MIMETYPE.getBytes(Charset.forName("US-ASCII"));
         NdefRecord wifiInfoRecord = new NdefRecord(NdefRecord.TNF_MIME_MEDIA, mimeBytes, new byte[0], payload);
         NdefMessage message = new NdefMessage(new NdefRecord[] { wifiInfoRecord, appRecord });
 
@@ -84,4 +84,8 @@ public class TagWriter {
         ndef.writeNdefMessage(message);
     }
 
+    private String wifiInfoAsString(WifiInfo wifiInfo) {
+        return new String( wifiInfo.getSsid() + Constants.WIFIINFO_SEPARATOR + wifiInfo.getPreSharedKey() );
+    }
+    
 }
