@@ -1,8 +1,8 @@
 package com.example.wlanhelper;
 
 public class WifiInfo {
-    String mSsid = "";
-    String mPreSharedKey = "";
+    private String mSsid;
+    private String mPreSharedKey;
 
     public WifiInfo(String ssid, String preSharedKey) {
         if (ssid.isEmpty() || preSharedKey.isEmpty()) {
